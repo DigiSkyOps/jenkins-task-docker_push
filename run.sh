@@ -1,7 +1,12 @@
 #!/bin/bash
-#!/bin/sh
 set -e
 
+# variable
+# docker.push.image
+# docker.push.registry
+# docker.push.username
+# docker.push.password
+# docker.push.email
 if [ -z "$ABS_DOCKER_PUSH_IMAGE" ]; then
   fail 'A Docker image is required.'
   info 'Please build the image before pushing it'
