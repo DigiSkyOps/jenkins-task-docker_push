@@ -1,5 +1,55 @@
 #!/bin/bash
-set -e
+
+set +e
+set -o noglob
+
+
+#
+# Set Colors
+#
+
+bold=
+underline=
+reset=
+
+red=
+green=
+white=
+tan=
+blue=
+
+#
+# Headers and Logging
+#
+
+underline() { printf "${underline}${bold}%s${reset}\n" "$@"
+}
+h1() { printf "\n${underline}${bold}${blue}%s${reset}\n" "$@"
+}
+h2() { printf "\n${underline}${bold}${white}%s${reset}\n" "$@"
+}
+debug() { printf "${white}%s${reset}\n" "$@"
+}
+info() { printf "${white}➜ %s${reset}\n" "$@"
+}
+success() { printf "${green}✔ %s${reset}\n" "$@"
+}
+error() { printf "${red}✖ %s${reset}\n" "$@"
+}
+warn() { printf "${tan}➜ %s${reset}\n" "$@"
+}
+bold() { printf "${bold}%s${reset}\n" "$@"
+}
+note() { printf "\n${underline}${bold}${blue}Note:${reset} ${blue}%s${reset}\n" "$@"
+}
+
+
+type_exists() {
+  if [ $(type -P $1) ]; then
+    return 0
+  fi
+  return 1
+}
 
 # variable
 # docker.push.image
@@ -8,8 +58,9 @@ set -e
 # docker.push.password
 # docker.push.email
 if [ -z "$ABS_DOCKER_PUSH_IMAGE" ]; then
-  fail 'A Docker image is required.'
+  error 'A Docker image is required.'
   info 'Please build the image before pushing it'
+  exit -1
 fi
 
 if [ -n "$ABS_DOCKER_PUSH_REGISTRY" ]; then
@@ -17,15 +68,18 @@ if [ -n "$ABS_DOCKER_PUSH_REGISTRY" ]; then
 fi
 
 if [ -z "$ABS_DOCKER_PUSH_USERNAME" ]; then
-  fail 'A username is required to login to the registry'
+  error 'A username is required to login to the registry'
+  exit -1
 fi
 
 if [ -z "$ABS_DOCKER_PUSH_PASSWORD" ]; then
-  fail 'A password is required to login to the registry'
+  error 'A password is required to login to the registry'
+  exit -1
 fi
 
 if [ -z "$ABS_DOCKER_PUSH_EMAIL" ]; then
-  fail 'An email is required to login to the registry'
+  error 'An email is required to login to the registry'
+  exit -1
 fi
 
 
@@ -38,7 +92,7 @@ type_exists() {
 
 # Check Docker is installed
 if ! type_exists 'docker'; then
-  fail 'Docker is not installed on this box.'
+  error 'Docker is not installed on this box.'
   info 'Please use a box with docker installed'
   exit 1
 fi
@@ -53,11 +107,10 @@ EMAIL="--email $ABS_DOCKER_PUSH_EMAIL"
 info 'login to the docker registry'
 DOCKER_LOGIN="docker login $USERNAME $PASSWORD $EMAIL $REGISTRY"
 debug `echo $DOCKER_LOGIN | tr "$PASSWORD" '***********'`
-DOCKER_LOGIN_OUTPUT=$($DOCKER_LOGIN)
+docker login $USERNAME $PASSWORD $EMAIL $REGISTRY
 
 if [[ $? -ne 0 ]]; then
-  warn $DOCKER_LOGIN_OUTPUT
-  fail 'docker login failed';
+  error 'docker login errored';
 else
   success 'docker login succeed';
 fi
@@ -67,11 +120,10 @@ info 'pushing docker image'
 
 DOCKER_PUSH="docker push $ABS_DOCKER_PUSH_IMAGE"
 debug "$DOCKER_PUSH"
-DOCKER_PUSH_OUTPUT=$($DOCKER_PUSH)
+docker push $ABS_DOCKER_PUSH_IMAGE
 
 if [[ $? -ne 0 ]];then
-  warn $DOCKER_PUSH_OUTPUT
-  fail 'docker push failed';
+  error 'docker push errored';
 else
   success 'docker push succeed';
 fi
@@ -80,11 +132,10 @@ fi
 info 'logout to the docker registry'
 DOCKER_LOGOUT="docker logout $REGISTRY"
 debug "$DOCKER_LOGOUT"
-DOCKER_LOGOUT_OUTPUT=$($DOCKER_LOGOUT)
+docker logout $REGISTRY
 
 if [[ $? -ne 0 ]];then
-  warn $DOCKER_LOGOUT_OUTPUT
-  fail 'docker logout failed';
+  error 'docker logout errored';
 else
   success 'docker logout succeed';
 fi
