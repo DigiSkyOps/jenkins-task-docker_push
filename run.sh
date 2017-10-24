@@ -34,7 +34,7 @@ info() { printf "${white}➜ %s${reset}\n" "$@"
 }
 success() { printf "${green}✔ %s${reset}\n" "$@"
 }
-error() { printf "${red}✖ %s${reset}\n" "$@"
+error() { printf "${red}✖ %s${reset}\n" "$@" exit -1
 }
 warn() { printf "${tan}➜ %s${reset}\n" "$@"
 }
@@ -58,9 +58,8 @@ type_exists() {
 # docker.push.password
 # docker.push.email
 if [ -z "$ABS_DOCKER_PUSH_IMAGE" ]; then
-  error 'A Docker image is required.'
   info 'Please build the image before pushing it'
-  exit -1
+  error 'A Docker image is required.'
 fi
 
 if [ -n "$ABS_DOCKER_PUSH_REGISTRY" ]; then
@@ -69,19 +68,11 @@ fi
 
 if [ -z "$ABS_DOCKER_PUSH_USERNAME" ]; then
   error 'A username is required to login to the registry'
-  exit -1
 fi
 
 if [ -z "$ABS_DOCKER_PUSH_PASSWORD" ]; then
   error 'A password is required to login to the registry'
-  exit -1
 fi
-
-if [ -z "$ABS_DOCKER_PUSH_EMAIL" ]; then
-  error 'An email is required to login to the registry'
-  exit -1
-fi
-
 
 type_exists() {
   if [ $(type -P $1) ]; then
@@ -92,22 +83,20 @@ type_exists() {
 
 # Check Docker is installed
 if ! type_exists 'docker'; then
-  error 'Docker is not installed on this box.'
   info 'Please use a box with docker installed'
-  exit 1
+  error 'Docker is not installed on this box.'
 fi
 
 set +e
 
 USERNAME="--username $ABS_DOCKER_PUSH_USERNAME"
 PASSWORD="--password $ABS_DOCKER_PUSH_PASSWORD"
-EMAIL="--email $ABS_DOCKER_PUSH_EMAIL"
 
 # Login to the registry
 info 'login to the docker registry'
-DOCKER_LOGIN="docker login $USERNAME $PASSWORD $EMAIL $REGISTRY"
+DOCKER_LOGIN="docker login $USERNAME $PASSWORD $REGISTRY"
 debug `echo $DOCKER_LOGIN | tr "$PASSWORD" '***********'`
-docker login $USERNAME $PASSWORD $EMAIL $REGISTRY
+docker login $USERNAME $PASSWORD $REGISTRY
 
 if [[ $? -ne 0 ]]; then
   error 'docker login errored';
