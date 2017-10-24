@@ -82,6 +82,20 @@ type_exists() {
   return 1
 }
 
+docker_logout() {
+  # Logout from the registry
+  info 'logout to the docker registry'
+  DOCKER_LOGOUT="docker logout $REGISTRY"
+  debug "$DOCKER_LOGOUT"
+  docker logout $REGISTRY
+
+  if [[ $? -ne 0 ]];then
+    error 'docker logout errored';
+  else
+    success 'docker logout succeed';
+  fi
+}
+
 # Check Docker is installed
 if ! type_exists 'docker'; then
   info 'Please use a box with docker installed'
@@ -120,19 +134,5 @@ else
 fi
 
 docker_logout
-
-docker_logout() {
-  # Logout from the registry
-  info 'logout to the docker registry'
-  DOCKER_LOGOUT="docker logout $REGISTRY"
-  debug "$DOCKER_LOGOUT"
-  docker logout $REGISTRY
-
-  if [[ $? -ne 0 ]];then
-    error 'docker logout errored';
-  else
-    success 'docker logout succeed';
-  fi
-}
 
 set -e
