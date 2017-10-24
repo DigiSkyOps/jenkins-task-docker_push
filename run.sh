@@ -96,7 +96,7 @@ PASSWORD="--password $ABS_DOCKER_PUSH_PASSWORD"
 # Login to the registry
 info 'login to the docker registry'
 DOCKER_LOGIN="docker login $USERNAME $PASSWORD $REGISTRY"
-debug `echo $DOCKER_LOGIN | tr "$PASSWORD" '***********'`
+debug `echo $DOCKER_LOGIN | tr "$ABS_DOCKER_PUSH_PASSWORD" '***********'`
 docker login $USERNAME $PASSWORD $REGISTRY
 
 if [[ $? -ne 0 ]]; then
