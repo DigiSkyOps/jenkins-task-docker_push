@@ -1,0 +1,35 @@
+---
+version: '1.0'
+box: docker
+
+name: docker_push
+
+# pipeline -> stage -> tasks
+vars:
+  group.id: xyz.opstack.jenkins.tasks
+  artifact.id: ${meta.name}
+
+stages:
+  - name: pkg
+    tasks:
+      - task.id: semver
+      - task.id: opspkg
+        artifact.id: ${meta.name}
+        fileset.dir: ${ws.dir}
+        fileset.includes: 'run.sh,VERSION,.ci.yml'
+
+  - name: artifact
+    tasks:
+      - task.id: ftpartifact
+        scm.type: git
+        artifact.lane: jenkins
+        fileset.dir: ${ws.dir}
+        fileset.includes: ${meta.name}-*.tar.gz
+
+pipelines:
+  - name: dev
+    stages:
+      - pkg
+      - artifact
+
+default: dev
