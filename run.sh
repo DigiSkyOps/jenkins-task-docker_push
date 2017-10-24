@@ -34,7 +34,8 @@ info() { printf "${white}➜ %s${reset}\n" "$@"
 }
 success() { printf "${green}✔ %s${reset}\n" "$@"
 }
-error() { printf "${red}✖ %s${reset}\n" "$@" exit -1
+error() { printf "${red}✖ %s${reset}\n" "$@"
+  exit -1
 }
 warn() { printf "${tan}➜ %s${reset}\n" "$@"
 }
@@ -112,21 +113,26 @@ debug "$DOCKER_PUSH"
 docker push $ABS_DOCKER_PUSH_IMAGE
 
 if [[ $? -ne 0 ]];then
+  docker_logout
   error 'docker push errored';
 else
   success 'docker push succeed';
 fi
 
-# Logout from the registry
-info 'logout to the docker registry'
-DOCKER_LOGOUT="docker logout $REGISTRY"
-debug "$DOCKER_LOGOUT"
-docker logout $REGISTRY
+docker_logout
 
-if [[ $? -ne 0 ]];then
-  error 'docker logout errored';
-else
-  success 'docker logout succeed';
-fi
+docker_logout() {
+  # Logout from the registry
+  info 'logout to the docker registry'
+  DOCKER_LOGOUT="docker logout $REGISTRY"
+  debug "$DOCKER_LOGOUT"
+  docker logout $REGISTRY
+
+  if [[ $? -ne 0 ]];then
+    error 'docker logout errored';
+  else
+    success 'docker logout succeed';
+  fi
+}
 
 set -e
