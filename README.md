@@ -25,7 +25,7 @@ stages:
   tasks:
     - task.id: docker_push
       docker.push.image: hub.digi-sky.com/hello/world:1.0.0
-      docker.push.registry hub.digi-sky.com
+      docker.push.registry: hub.digi-sky.com
       docker.push.username: admin
       docker.push.password: admin123
       docker.push.email: admin@localhost
